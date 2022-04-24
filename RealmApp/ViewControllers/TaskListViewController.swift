@@ -42,7 +42,11 @@ class TaskListViewController: UITableViewController {
         var content = cell.defaultContentConfiguration()
         let taskList = taskLists[indexPath.row]
         content.text = taskList.name
-        content.secondaryText = "\(taskList.tasks.count)"
+        if taskList.tasks.contains(where: { !$0.isComplete }) {
+            content.secondaryText = "\(taskList.tasks.filter("isComplete = false").count)"
+        } else {
+            content.secondaryText = "✅"
+        }
         cell.contentConfiguration = content
         return cell
     }
@@ -64,15 +68,24 @@ class TaskListViewController: UITableViewController {
         }
         
         let doneAction = UIContextualAction(style: .normal, title: "Done") { _, _, isDone in
-            StorageManager.shared.done(taskList)
+            StorageManager.shared.done(taskList, isDone: false)
+            tableView.reloadRows(at: [indexPath], with: .automatic)
+            isDone(true)
+        }
+
+        let unDoneAction = UIContextualAction(style: .normal, title: "Undone") { _, _, isDone in
+            StorageManager.shared.done(taskList, isDone: true)
             tableView.reloadRows(at: [indexPath], with: .automatic)
             isDone(true)
         }
         
         editAction.backgroundColor = .orange
         doneAction.backgroundColor = #colorLiteral(red: 0.3411764801, green: 0.6235294342, blue: 0.1686274558, alpha: 1)
+        unDoneAction.backgroundColor = doneAction.backgroundColor
+
+        let doneUndoneAction = taskList.tasks.contains(where: { !$0.isComplete }) ? doneAction : unDoneAction
         
-        return UISwipeActionsConfiguration(actions: [doneAction, editAction, deleteAction])
+        return UISwipeActionsConfiguration(actions: [doneUndoneAction, editAction, deleteAction])
     }
     
     // MARK: - Navigation
@@ -84,6 +97,14 @@ class TaskListViewController: UITableViewController {
     }
 
     @IBAction func sortingList(_ sender: UISegmentedControl) {
+        switch sender.selectedSegmentIndex {
+        case 0:
+            taskLists = taskLists.sorted(byKeyPath: "date")
+            tableView.reloadData()
+        default:
+            taskLists = taskLists.sorted(byKeyPath: "name")
+            tableView.reloadData()
+        }
     }
     
     @objc private func addButtonPressed() {
