@@ -1,10 +1,10 @@
-//
-//  TasksViewController.swift
-//  RealmApp
-//
-//  Created by Alexey Efimov on 02.07.2018.
-//  Copyright © 2018 Alexey Efimov. All rights reserved.
-//
+    //
+    //  TasksViewController.swift
+    //  RealmApp
+    //
+    //  Created by Alexey Efimov on 02.07.2018.
+    //  Copyright © 2018 Alexey Efimov. All rights reserved.
+    //
 
 import UIKit
 import RealmSwift
@@ -28,7 +28,7 @@ class TasksViewController: UITableViewController {
         updateTasks()
     }
     
-    // MARK: - Table view data source
+        // MARK: - Table view data source
     override func numberOfSections(in tableView: UITableView) -> Int {
         2
     }
@@ -65,25 +65,22 @@ class TasksViewController: UITableViewController {
             }
             isDone(true)
         }
-        let unDoneAction = UIContextualAction(style: .normal, title: "Undone") { _, _, isDone in
-            StorageManager.shared.done(task, isDone: true)
-            let newIndexPath = IndexPath(row: tableView.numberOfRows(inSection: 0), section: 0)
-            tableView.moveRow(at: indexPath, to: newIndexPath)
-            isDone(true)
-        }
-
-        let doneAction = UIContextualAction(style: .normal, title: "Done") { _, _, isDone in
-            StorageManager.shared.done(task, isDone: false)
-            let newIndexPath = IndexPath(row: tableView.numberOfRows(inSection: 1), section: 1)
+        let doneAction = UIContextualAction(
+            style: .normal,
+            title: indexPath.section == 0 ? "Done" : "Undone"
+        ) { _, _, isDone in
+            StorageManager.shared.done(task)
+            let newTaskSection = indexPath.section == 0 ? 1 : 0
+            let newTaskRow = tableView.numberOfRows(inSection: newTaskSection)
+            let newIndexPath = IndexPath(row: newTaskRow, section: newTaskSection)
             tableView.moveRow(at: indexPath, to: newIndexPath)
             isDone(true)
         }
 
         editAction.backgroundColor = .orange
         doneAction.backgroundColor = #colorLiteral(red: 0.3411764801, green: 0.6235294342, blue: 0.1686274558, alpha: 1)
-        unDoneAction.backgroundColor = doneAction.backgroundColor
 
-        return UISwipeActionsConfiguration(actions: [task.isComplete ? unDoneAction : doneAction, editAction, deleteAction])
+        return UISwipeActionsConfiguration(actions: [doneAction, editAction, deleteAction])
     }
     
     @objc private func addButtonPressed() {
@@ -105,7 +102,6 @@ extension TasksViewController {
                 self.saveTask(withName: newValue, andNote: note)
             }
         }
-        
         present(alert, animated: true)
     }
     

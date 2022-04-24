@@ -54,38 +54,30 @@ class TaskListViewController: UITableViewController {
     // MARK: - Table View Data Source
     override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let taskList = taskLists[indexPath.row]
-        
+
         let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { _, _, _ in
             StorageManager.shared.delete(taskList)
             tableView.deleteRows(at: [indexPath], with: .automatic)
         }
-        
+
         let editAction = UIContextualAction(style: .normal, title: "Edit") { _, _, isDone in
             self.showAlert(with: taskList) {
                 self.tableView.reloadRows(at: [indexPath], with: .automatic)
             }
             isDone(true)
         }
-        
-        let doneAction = UIContextualAction(style: .normal, title: "Done") { _, _, isDone in
-            StorageManager.shared.done(taskList, isDone: false)
-            tableView.reloadRows(at: [indexPath], with: .automatic)
-            isDone(true)
-        }
 
-        let unDoneAction = UIContextualAction(style: .normal, title: "Undone") { _, _, isDone in
-            StorageManager.shared.done(taskList, isDone: true)
+        let doneActionTitle = taskList.tasks.contains(where: { !$0.isComplete }) ? "Done" : "Undone"
+        let doneAction = UIContextualAction(style: .normal, title: doneActionTitle) { _, _, isDone in
+            StorageManager.shared.done(taskList, isDone: doneActionTitle == "Done" ? false : true)
             tableView.reloadRows(at: [indexPath], with: .automatic)
             isDone(true)
         }
         
         editAction.backgroundColor = .orange
         doneAction.backgroundColor = #colorLiteral(red: 0.3411764801, green: 0.6235294342, blue: 0.1686274558, alpha: 1)
-        unDoneAction.backgroundColor = doneAction.backgroundColor
 
-        let doneUndoneAction = taskList.tasks.contains(where: { !$0.isComplete }) ? doneAction : unDoneAction
-        
-        return UISwipeActionsConfiguration(actions: [doneUndoneAction, editAction, deleteAction])
+        return UISwipeActionsConfiguration(actions: [doneAction, editAction, deleteAction])
     }
     
     // MARK: - Navigation
